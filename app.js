@@ -6,6 +6,7 @@
 var express = require('express'),
 	socket = require('socket.io'), 
 	Game = require('./game').game,
+	Guess = require('./game').guess,
 	routes = require('./routes');
 
 var app = module.exports = express.createServer();
@@ -46,8 +47,6 @@ app.get('/',function(req,res){
 io.sockets.on('connection',function(socket){
 	var id = socket.id;
 	connections[id] = socket;
-	socket.on('losePlayer',function(name){
-	});
 	
 	// bind customs events
 	socket.on('attend',function(data){
@@ -69,6 +68,27 @@ io.sockets.on('connection',function(socket){
 		}
 	});
 	
+	socket.on('playGuess',function(data){
+		var name = data.name;
+		var player = game.getPlayer(name);
+		var opponent = game.getPlayer(player.opponent);
+		var action = Guess.ACTIONS[data.action];
+		var winner = game.playGuess(name,action);
+		var guessGame = game.getGuess(name);		
+		if(winner){
+			winner.levelUp();
+			game.getPlayer(winner.opponent).levelDown();
+			game.closeGuess(guessGame);
+			
+			io.sockets.emit("updateView",game.matrix);
+			connections[player.socket].emit("closeGuessView");
+			connections[opponent.socket].emit("closeGuessView");
+		}else{
+			connections[player.socket].emit("resetGuessView");
+			connections[opponent.socket].emit("resetGuessView");
+		}
+	});
+	
 	socket.on('move',function(dir){
 		socket.get('name',function(err,name){
 			var next = game.movePlayer(name,dir);
@@ -78,14 +98,13 @@ io.sockets.on('connection',function(socket){
 				playerA = players.playerA;
 				playerB = players.playerB;
 				game.newGuess(playerA,playerB);
-				connections[playerA.socket].emit("showGuessView",playerB);
-				connections[playerB.socket].emit("showGuessView",playerA);
-				
+				console.log(playerA,playerB);
+				connections[playerA.socket].emit("showGuessView",{me:playerA,opponent:playerB});
+				connections[playerB.socket].emit("showGuessView",{me:playerB,opponent:playerB});
 			}
 			io.sockets.emit("updateView",game.matrix);
-		})
-		
-	})
+		});
+	});
 	
 	socket.on('disconnect', function () {
 		socket.get('name',function(err,name){

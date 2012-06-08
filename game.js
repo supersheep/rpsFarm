@@ -50,7 +50,6 @@ Game.prototype = {
 	isFree:function(position){
 		return this.getPosition(position) === null;
 	},
-	
 	getFreeSpace:function(){
 		var matrix = this.matrix,
 			edge = this.edge,
@@ -151,6 +150,16 @@ Game.prototype = {
 			return this.matrix[position.y][position.x];
 		}else{
 			return null;
+		}
+	},
+	closeGuess:function(guess){
+		var guesses = this.guesses;
+		guess.close();
+		for(var i = 0 , l = guesses.length ;i<l; i++){
+			if(guesses[i] == guess){
+				guesses[i] = null;
+				guesses.splice(i,1);
+			}
 		}
 	},
 	getGuess:function(name){
@@ -260,3 +269,4 @@ Game.prototype = {
 }
 
 exports.game = Game;
+exports.guess = Guess;

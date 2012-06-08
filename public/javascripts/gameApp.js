@@ -19,22 +19,40 @@ $(document).ready(function(){
 			gameClient.renderView(matrix);
 		});
 		
-		socket.on('showGuessView',function(opponent){
-			gameClient.renderGuessView(opponent);
+		socket.on('resetGuessView',function(){
+			gameClient.resetGuessView();	
 		});
 		
-		$(document).on('keyup',function(e){
-			var keymap = {
-				37:"left",
-				38:"up",
-				39:"right",
-				40:"down"
-			};
-			socket.emit("move",keymap[e.keyCode]);
+		socket.on('closeGuessView',function(){
+			gameClient.closeGuessView();
+		})
+		
+		socket.on('showGuessView',function(data){
+			gameClient.renderGuessView(data.me,data.opponent);
 		});
+		
+		$("#guessview").find('.item').on('click',function(e){
+			var el = $(this);
+			var action = el.attr('class').split(' ')[1].toUpperCase();
+			$("#guessview").find('.item').hide();
+			el.show();
+			
+			socket.emit("playGuess",{
+				name:name,
+				action:action
+			});
+		})
+		
 		
 	}
+});
 
-	
-	
+$(document).on('keyup',function(e){
+	var keymap = {
+		37:"left",
+		38:"up",
+		39:"right",
+		40:"down"
+	};
+	socket.emit("move",keymap[e.keyCode]);
 });

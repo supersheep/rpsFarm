@@ -9,6 +9,9 @@ const
 	position:Number
 	name:String
 */
+
+const maxLevel = 5;
+
 function Player(name){
 	this.name = name;
 	this.level = 0;
@@ -17,9 +20,18 @@ function Player(name){
 	console.log("init player",name);
 }
 
-
 Player.prototype = {
 	constructor : Player,
+	levelUp:function(){
+		if(this.level < maxLevel){
+			this.level += 1;	
+		}
+	},
+	levelDown:function(){
+		if(this.level < 0){
+			this.level -= 1;
+		}
+	},
 	playWith:function(opponent){
 		this._guessing = true;
 		this.opponent = opponent;

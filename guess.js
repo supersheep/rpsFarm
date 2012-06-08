@@ -3,6 +3,8 @@ var Player = require("./player").player;
 function Guess(p1,p2){
 	this.playerA = p1;
 	this.playerB = p2;
+	p1.opponent = p2.name;
+	p2.opponent = p1.name;
 	this.playground = [];
 }
 
@@ -15,8 +17,24 @@ Guess.ACTIONS = {
 Guess.prototype = {
 	act:function(player,action){
 		var result;
-		this.playground.push({player:player,action:action});
-		if(this.playground.length == 2){
+		var playground = this.playground;
+		
+		console.log(player.name + " act " + action )		
+		if(playground[0] && playground[0].player.name == player.name){
+			console.log(player.name + " already acted")
+			return null;
+		}else if(
+			this.playerA != player
+			&& 
+			this.playerB != player
+		){
+			console.log("illeagle player " + player.name);
+			return null;
+		}
+		
+		playground.push({player:player,action:action});
+		
+		if(playground.length == 2){
 			result = this.judge();
 			this.playground = [];
 		}
@@ -35,20 +53,21 @@ Guess.prototype = {
 		}else{
 			ret = playground[1].player;
 		}
-		console.log(ret,playground);
-		return ret;
 		
+		if(ret === null){
+			console.log("no one wins");
+		}else{
+			console.log(ret.name + " wins");
+		}
+		return ret;
+	},
+	close:function(){
+		this.playerA.opponent = null;
+		this.playerA._guessing = false;
+		this.playerB.opponent = null;
+		this.playerB._guessing = false;
 	}
 	
 }
 
-// test code
-/*
-var p1 = new Player("spud");
-var p2 = new Player("nide");
-var guess = new Guess(p1,p2);
-
-guess.act(p1,Guess.ACTIONS.STONE);
-guess.act(p2,Guess.ACTIONS.STONE);
-*/
 exports.guess = Guess;
