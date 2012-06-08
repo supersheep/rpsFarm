@@ -1,0 +1,42 @@
+body,h1,h2,h3,div,p,a,ul,li{margin:0;padding:0;}
+ul{list-style: none;}
+.clear:after,.row:after,
+.guessview .board:after,
+.guessview .choices:after{display: block;clear: both;content: '';}
+#wrap{margin:0 auto;width:800px;}
+
+#main{background:#cdeb90;}
+
+#board{float:left;width:560px;margin-right:10px;padding-bottom: 10px;}
+#board .row{margin-top: 10px;}
+#board .grid{margin-left:10px;width:60px;height:60px;background-color:#fff;float:left;position: relative;}
+
+#board .grid .name_tip{
+	width:100%;
+	text-align: center;
+	background: rgba(0,0,0,0.2);
+	color:#fff;
+	position:absolute;
+	bottom:0;
+}
+	
+#aside{float:left;width:220px;padding-top:10px;}
+
+#player_list{background: #fff;margin-bottom:10px;}
+#player_list .head{padding:10px;background:#f5f5f5;}
+#player_list .body{}
+#player_list .body li{
+	border-left:4px solid #7cc052;
+	margin:5px;
+	padding:3px 10px;
+}
+
+
+.guessview{}
+.guessview .board{margin-bottom: 10px;}
+.guessview .player{width:60px;height:60px;background: #fff;}
+.guessview .playerA{float:left;}
+.guessview .playerB{float:right;}
+.guessview .choices{margin:0 auto;}
+.guessview .choices .item{width:45px;height:45px;float:left;margin-right:42px;background-color: #fff;}
+.guessview .choices .cloth{margin-right: 0;} 
