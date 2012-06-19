@@ -9,39 +9,43 @@ $(document).ready(function(){
 			name:name
 		});
 		
-		socket.on('updatePlayerList',gameClient.renderPlayerList);
+		socket.on('game:update player list',function(data){
+			gameClient.renderPlayerList(data.players,data.watchers,data.maxPlayer);
+		});
 		
-		socket.on('updateView',function(matrix){
+		socket.on('game:player full',function(){
+			console.log("game:player full");	
+			gameClient.start();
+		});
+		
+		socket.on('game:start',function(){
+			console.log('game:start');
+			gameClient.start();
+		});
+		
+		socket.on('game:wait',function(obj){
+			gameClient.waitPlayer(obj.max,obj.current);
+		});
+		
+		socket.on('board:render',function(matrix){
 			gameClient.renderView(matrix);
 		});
 		
-		socket.on('gameStart',function(matrix){
-			gameClient.renderView(matrix);
-		});
-		
-		socket.on('resetGuessView',function(){
-			gameClient.resetGuessView();	
-		});
-		
-		socket.on('closeGuessView',function(){
-			gameClient.closeGuessView();
-		})
-		
-		socket.on('showGuessView',function(data){
+		socket.on('guess:start',function(data){
+			// playername, guessname
+			console.log("guess:start");
+			gameClient.bindGuessView(name,data.name);
 			gameClient.renderGuessView(data.me,data.opponent);
 		});
 		
-		$("#guessview").find('.item').on('click',function(e){
-			var el = $(this);
-			var action = el.attr('class').split(' ')[1].toUpperCase();
-			$("#guessview").find('.item').hide();
-			el.show();
-			
-			socket.emit("playGuess",{
-				name:name,
-				action:action
-			});
-		})
+		socket.on('guess:reset',function(){
+			gameClient.resetGuessView();	
+		});
+		
+		socket.on('guess:end',function(){
+			gameClient.closeGuessView();
+		});
+		
 		
 		
 	}
@@ -54,5 +58,7 @@ $(document).on('keyup',function(e){
 		39:"right",
 		40:"down"
 	};
-	socket.emit("move",keymap[e.keyCode]);
+	if(gameClient.started){
+		socket.emit("move",keymap[e.keyCode]);
+	}
 });

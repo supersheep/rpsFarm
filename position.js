@@ -34,4 +34,4 @@ Position.prototype = {
 	}
 }
 
-exports.position = Position;
+exports.Position = Position;

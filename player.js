@@ -28,20 +28,16 @@ Player.prototype = {
 		}
 	},
 	levelDown:function(){
-		if(this.level < 0){
+		if(this.level > 0){
 			this.level -= 1;
 		}
 	},
-	playWith:function(opponent){
-		this._guessing = true;
-		this.opponent = opponent;
-	},
 	isGuessing:function(){
-		return this._guessing;
+		return this.opponent !== null;
 	},
 	moveTo:function(position){
 		this.position = position;
 	}
 }
 
-exports.player = Player
+exports.Player = Player

@@ -1,6 +1,9 @@
-var Position = require('./position').position;
-var Guess = require('./guess').guess;
-var Player = require('./player').player;
+var Event = require('events').EventEmitter;
+var Position = require('./position').Position;
+var Guess = require('./guess').Guess;
+var List = require('./list').List;
+var Player = require('./player').Player;
+var Watcher = require('./watcher').Watcher;
 
 /*
 {
@@ -11,12 +14,8 @@ var Player = require('./player').player;
 }
 */
 
-var Game = function(opt){
-	var edge = opt.edge,
-		maxPlayer = opt.maxPlayer,
-		matrix = [];
-	
-	// TODO 推算maxPlayer与edge的关系，在不符合条件时返回，demo预设8x8 8players
+var Board = function(game,edge){
+	var matrix = [];
 	
 	for(var i = 0 ; i < edge ; i++ ){
 		matrix[i] = matrix[i] || [];
@@ -24,12 +23,103 @@ var Game = function(opt){
 			matrix[i][j] = null;
 		}
 	}
+	this.game = game;
+	this.matrix = matrix;
+};
+
+Board.prototype = {
+	get:function(pos){
+		return this.matrix[pos.y][pos.x];
+	},
+	set:function(pos,val){
+		this.matrix[pos.y][pos.x] = val
+	},
+	kick:function(player){
+		this.set(player.position,null);
+	},
+	put:function(pos,player){
+		if(pos){
+			player.moveTo(pos);
+		}
+		
+		if(player.position){
+			this.set(player.position,player);
+		}
+	},
+	free:function(pos){
+		return !this.get(pos);
+	},
+	exchange:function(cur,next){
+		var pcur,pnext;
+		
+		pcur = this.get(cur);
+		pnext = this.get(next);
+		
+		pcur && pcur.moveTo && pcur.moveTo(next);
+		pnext && pnext.moveTo && pnext.moveTo(pcur);
+		
+		this.set(cur,pnext);
+		this.set(next,pcur);
+	},
+	checkOpponent:function(pos){
+		var self = this,
+			playerA = this.get(pos),
+			playerB;
+			
+		if(!playerA){return;}
+		
+		try{
+		["up","down","left","right"].forEach(function(dir){
+			playerB = self.get(pos[dir]());
+			if(playerB && !playerB.isGuessing() && playerB.level === playerA.level){
+				self.game.newGuess(playerA,playerB);
+				throw "found opponent";
+			}
+		});
+		}catch(e){
+			console.log(e);
+			// found
+		}
+	},
+	greenland:function(){
+		var self = this,
+			matrix = this.matrix,
+			index,rest = [];
+		
+		matrix.forEach(function(row,i){
+			row.forEach(function(grid,j){
+				var pos = new Position(j,i);
+				if(self.free(pos)
+				&& self.free(pos.left())
+				&& self.free(pos.right())
+				&& self.free(pos.up())
+				&& self.free(pos.down())
+				){
+					rest.push(pos);
+				}	
+			});
+		});
+		
+		index = Math.floor(Math.random() * rest.length);
+		
+		return rest[index];
+	}
+}
+
+
+var Game = function(opt){
+	var edge = opt.edge,
+		maxPlayer = opt.maxPlayer;
+	
+	// TODO 推算maxPlayer与edge的关系，在不符合条件时返回，demo预设8x8 8players
+	
 
 	this.edge = opt.edge;
 	this.maxPlayer = maxPlayer;
-	this.matrix = matrix;
-	this.players = [];
-	this.guesses = [];
+	this.board = new Board(this,edge);
+	this.players = new List(Player,maxPlayer);
+	this.watchers = new List(Watcher);
+	this.guesses = new List(Guess);
 	
 	console.log("init game");
 	
@@ -40,45 +130,17 @@ var Game = function(opt){
 	randomEmptyPosition
 	canmove
 */
-Game.prototype = {
+
+var fn = {
 	
 	constructor :Game,
 	
-	reachMax:function(){
-		return this.players.length == this.maxPlayer;
-	},
-	isFree:function(position){
-		return this.getPosition(position) === null;
-	},
-	getFreeSpace:function(){
-		var matrix = this.matrix,
-			edge = this.edge,
-			pos,
-			index,
-			rest = [];
-		
-		for(var i = 0 ; i < edge ; i++ ){
-			for(var j = 0; j < edge ; j++ ){
-				pos = new Position(j,i);
-				if(this.isFree(pos)
-				&& this.isFree(pos.left())
-				&& this.isFree(pos.right())
-				&& this.isFree(pos.up())
-				&& this.isFree(pos.down())
-				){
-					rest.push([j,i]);
-				}
-			}
-		}
-		
-		index = Math.floor(Math.random() * rest.length);
-		
-		return rest[index];
-	},
-	playGuess:function(name,action){
-		var player = this.getPlayer(name);
-		var guess = this.getGuess(name);
-		return guess.act(player,action);
+	
+	playGuess:function(player,guess,action){
+		var player = this.players.get(player),
+			guess = this.guesses.get(guess),
+			action = Guess.ACTIONS[action];
+		guess.act(player,action);
 	},
 	movePlayer:function(name,dir){
 		var cur,
@@ -88,7 +150,7 @@ Game.prototype = {
 			matrix = this.matrix;
 		
 		// get index
-		player = this.getPlayer(name);
+		player = this.players.get(name);
 		
 		if(!player){
 			console.log("player " + name + " not found",this.players);
@@ -96,151 +158,133 @@ Game.prototype = {
 		}
 		
 		cur = player.position;
-		
-		if(!cur[dir]){
-			console.log("func " + dir + " not exist");
-			return;
-		}
-		
 		next = cur[dir]();
 		
 		// 可移动
-		if(!this.getPosition(next)){
-			this.exchange(cur,next);
-			player.position = next;
-			return next; // 检查周围有无可以猜拳的对手
+		if(this.board.free(next) && !player.isGuessing()){
+			this.board.exchange(cur,next);
+			this.board.checkOpponent(next);
+			this.emit("player move",this.board.matrix);			
 		}
-		//this.putPlayer(player,position);
-		//player.moveTo(position);
-		//this.matrix[position.x][position.y] = player;
-	},
-	// 有就建立一个猜拳游戏
-	checkConnection:function(position){
-		var dir = ["up","down","left","right"];
-		var playerA = this.getPosition(position);
-		var playerB;
-		if(!playerA){return;}
-		
-		for(var i = 0 , l = dir.length; i < l ; i++){
-			playerB = this.getPosition(position[dir[i]]());
-			if(playerB && !playerB.isGuessing()){
-				this.newGuess(playerA,playerB);
-				return {playerA:playerA,playerB:playerB}; 
-			}
-		}	
-		return null;
 	},
 	newGuess:function(playerA,playerB){
-		this.guesses.push(new Guess(playerA,playerB));
-	},
-	exchange:function(cur,next){
-		var curP,nextP,tmp;
+		var self = this,
+			guess = new Guess(playerA,playerB);
 		
-		curP = this.getPosition(cur);
-		nextP = this.getPosition(next);
+		guess.on("start",function(data){
+			console.log("guess on start");
+			self.emit("guess start",{
+				playerA:data.playerA,
+				playerB:data.playerB
+			});
+		});
 		
-		this.setPosition(cur,nextP);
-		this.setPosition(next,curP);
-	},
-	setPosition:function(position,val){
-		this.matrix[position.y][position.x] = val;
-	},
-	getPosition:function(position){
-		if(position){
-			return this.matrix[position.y][position.x];
-		}else{
-			return null;
-		}
+		guess.on("end",function(data){
+			self.emit("guess end",{
+				winner:data.winner,
+				loser:data.loser
+			});
+		});
+		
+		guess.on("continue",function(){
+			self.emit("guess continue",{
+				playerA:data.playerA,
+				playerB:data.playerB
+			});
+		});
+		
+		guess.start();
+		this.guesses.add(guess);
 	},
 	closeGuess:function(guess){
 		var guesses = this.guesses;
 		guess.close();
-		for(var i = 0 , l = guesses.length ;i<l; i++){
-			if(guesses[i] == guess){
-				guesses[i] = null;
-				guesses.splice(i,1);
-			}
-		}
+		guesses.remove(guess);
 	},
 	getGuess:function(name){
-		var guesses = this.guesses,
-			guess;
-		for(var i = 0 , l = guesses.length ; i < l ; i++){
-			guess = guesses[i];
-			if(guess.playerA.name == name || guess.playerB.name == name){
-				return guess;
-			} 
-		}
-		return null;
+		return this.guesses.get(name);
 	},
 	getPlayer:function(name){
 		var matrix = this.matrix,
 			edge = this.edge;
 		
-		for(var i = 0 ; i < edge ; i++){
-			for(var j = 0 ; j < edge ; j++){
-				player = this.getPosition({x:j,y:i});
-				if(player && player.name == name){
-					return player;
-				}
-			}
-		}
-		return null;
-	},
-	putPlayer:function(player,position){
-		player.moveTo(position);
-		this.setPosition(position,player);
-	},
-	addPlayer:function(name){
-		var player,position,coord,edge;
-		if(this.players.length < this.maxPlayer){
-			if(!this.hasPlayer(name)){
-				coord = this.getFreeSpace();
-				edge = this.edge;
-				player = new Player(name);
-				position = new Position(coord[0],coord[1]);
-				this.putPlayer(player,position);
-				this.players.push(player);
-				return player;
-			}else{
-				console.log(name + " existing");
-				return null;
-			}
-		}else{
-			console.log("room is full");
-			return null;
-		}
+		console.log("getting player "+name);
+		return this.players.get(name);
 	},
 	
-	removePlayer:function(name){
-		var players = this.players,
-			player = this.getPlayer(name),
-			matrix = this.matrix,
-			position;
+	addPlayer:function(name){
+		var player,watcher,count;
+		
+		try{
+			player = new Player(name);
+			this.players.add(player);
+			this.board.put(this.board.greenland(),player);
 			
-		if(player){
-			position = player.position;
-			for(var i = 0 , l = players.length; i < l ; i++){
-				if(players[i].name == name){
-					players.splice(i,1);
-					break;
-				}
+			count = this.players.count();
+			max = this.players.max;
+			
+			this.emit("new player",player);
+			this.emit("wait",{
+				current:count,
+				max:max
+			});
+			if(count === max ){
+				this.start();
 			}
-			console.log("remove player "+name);
-			
-			matrix[position.y][position.x] = null;
+		}catch(err){
+			if(err === "full" ){
+				try{
+					watcher = new Watcher(name);
+					this.watchers.add(watcher);
+					this.emit("new watcher",watcher);
+				}catch(err){
+					if(err === "full"){
+						this.emit("watcher full");
+					}else if(err === "exists"){
+						this.emit("watcher exists");
+					}else{
+						throw err;
+					}
+				}
+				this.emit("player full");
+			}else if(err === "exists"){
+				this.emit("player exists");
+			}else{
+				throw err;
+			}
 		}
 	},
-	hasPlayer:function(name){
-		return this.players.some(function(e){
-			return e.name === name;
-		});	
+	removeWatcher:function(name){
+		var watcher = this.watchers.get(name);
+		
+		this.watchers.remove(name);
+		this.emit("remove watcher");
+	},
+	removePlayer:function(name){
+		var player = this.players.get(name),
+			matrix = this.matrix,
+			position;
+		
+		this.players.remove(name);
+		this.board.kick(player);
+		this.emit("remove player");
 	},
 	start:function(){
-		this._started = true;
+		if(!this._started){
+			console.log("game start");
+			this.emit("start",this.board.matrix);
+			this._started = true;
+		}
 	},
 	started:function(){
 		return this._started;
+	},
+	playerList:function(){
+		return {
+			players:this.players.all(),
+			watchers:this.watchers.all(),
+			maxPlayer:this.maxPlayer	
+		};
 	},
 	// function only for console demo
 	show:function(){
@@ -264,9 +308,16 @@ Game.prototype = {
 		console.log(this.players);
 		
 	}
-	
-	
+};
+
+Game.prototype = new Event();
+
+for(var i in fn){
+	Game.prototype[i] = fn[i];
 }
 
-exports.game = Game;
-exports.guess = Guess;
+exports.Game = Game;
+exports.Guess = Guess;
+
+
+

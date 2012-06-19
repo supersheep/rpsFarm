@@ -1,10 +1,12 @@
-var Player = require("./player").player;
+var Event = require('events').EventEmitter;
+var Player = require("./player").Player;
 
 function Guess(p1,p2){
 	this.playerA = p1;
 	this.playerB = p2;
 	p1.opponent = p2.name;
 	p2.opponent = p1.name;
+	this.name = p1.name + ':' + p2.name;
 	this.playground = [];
 }
 
@@ -14,7 +16,20 @@ Guess.ACTIONS = {
 	CLOTH:3
 };
 
-Guess.prototype = {
+Guess.transAction = function(num){
+	return {1:"stone",2:"scissors",3:"cloth"}[num];
+}
+
+Guess.prototype = new Event();
+
+var fn = {
+	constructor : Guess,
+	start:function(){
+		this.emit("start",{
+			playerA:this.playerA,
+			playerB:this.playerB
+		});
+	},
 	act:function(player,action){
 		var result;
 		var playground = this.playground;
@@ -40,6 +55,9 @@ Guess.prototype = {
 		}
 		return result;
 	},
+	isPlaying:function(){
+		return this.playground.length == 1;
+	},
 	judge:function(){
 		var playground = this.playground;
 		var actionA = playground[0].action;
@@ -47,19 +65,25 @@ Guess.prototype = {
 		var ret;
 		
 		if( actionB - actionA == 1 || (actionB == 1 && actionA == 3) ){
-			ret =  playground[0].player;
+			winner = playground[0];
+			loser = playground[1];
 		}else if(actionB == actionA){
-			ret = null;
+			this.emit("continue",{
+				playerA:this.playerA,
+				playerB:this.playerB
+			});
 		}else{
-			ret = playground[1].player;
+			winner = playeground[1];
+			loser = playground[0];
 		}
 		
-		if(ret === null){
-			console.log("no one wins");
-		}else{
-			console.log(ret.name + " wins");
-		}
-		return ret;
+		
+		// winner or loser has {action,player}
+		this.emit("end",{
+			winner:winner,
+			loser:loser
+		});
+	
 	},
 	close:function(){
 		this.playerA.opponent = null;
@@ -70,4 +94,8 @@ Guess.prototype = {
 	
 }
 
-exports.guess = Guess;
+
+for(var i in fn){
+	Guess.prototype[i] = fn[i];
+}
+exports.Guess = Guess;

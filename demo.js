@@ -1,5 +1,5 @@
-var Game = require('./game').game;
-var Player = require('./player').player;
+var Game = require('./game').Game;
+var Player = require('./player').Player;
 
 var game = new Game({
 	edge:8,

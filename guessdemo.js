@@ -1,5 +1,5 @@
-var Guess = require('./guess').guess;
-var Player = require('./player').player;
+var Guess = require('./guess').Guess;
+var Player = require('./player').Player;
 
 var p1 = new Player("spud");
 var p2 = new Player("nide");
