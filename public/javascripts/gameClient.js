@@ -7,6 +7,16 @@ var gameClient = {
 			$('#board').show();
 		}
 	},
+	end:function(obj){
+		var winners,players;
+		if(this.started){
+			this.started = false;
+			winners = obj.winners;
+			players = obj.players;
+			console.log(winners,players);
+		}
+	},
+	
 	renderView:function(matrix){
 		var board = $('#board');
 			

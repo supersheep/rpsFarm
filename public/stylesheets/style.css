@@ -9,11 +9,11 @@ ul{list-style: none;}
 
 #board{float:left;width:560px;margin-right:10px;padding-bottom: 10px;display: none;}
 #board .row{margin-top: 10px;}
-#board .row .level0{background-image: url('i/egg.png');}
-#board .row .level1{background-image: url('i/rooster.png');}
-#board .row .level2{background-image: url('i/dog.png');}
-#board .row .level3{background-image: url('i/sheep.png');}
-#board .row .level4{background-image: url('i/man.png');}
+#board .row .level1{background-image: url('i/egg.png');}
+#board .row .level2{background-image: url('i/rooster.png');}
+#board .row .level3{background-image: url('i/dog.png');}
+#board .row .level4{background-image: url('i/sheep.png');}
+#board .row .level5{background-image: url('i/man.png');}
 #board .grid{margin-left:10px;width:60px;height:60px;background-color:#fff;float:left;position: relative;background-position: center center;background-repeat: no-repeat;}
 
 #board .grid .tip{

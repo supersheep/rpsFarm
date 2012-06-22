@@ -26,6 +26,7 @@ var fn = {
 	constructor : Guess,
 	start:function(){
 		this.emit("start",{
+			name:this.name,
 			playerA:this.playerA,
 			playerB:this.playerB
 		});
@@ -64,25 +65,29 @@ var fn = {
 		var actionB = playground[1].action;
 		var ret;
 		
-		if( actionB - actionA == 1 || (actionB == 1 && actionA == 3) ){
-			winner = playground[0];
-			loser = playground[1];
-		}else if(actionB == actionA){
+		if(actionB == actionA){
 			this.emit("continue",{
+				action:actionA,
 				playerA:this.playerA,
 				playerB:this.playerB
 			});
+			return;
 		}else{
-			winner = playeground[1];
-			loser = playground[0];
+			if( actionB - actionA == 1 || (actionB == 1 && actionA == 3) ){
+				winner = playground[0];
+				loser = playground[1];
+			}else{
+				winner = playground[1];
+				loser = playground[0];
+			}
+			// winner or loser has {action,player}
+			this.close();
+			this.emit("end",{
+				winner:winner,
+				loser:loser
+			});
 		}
 		
-		
-		// winner or loser has {action,player}
-		this.emit("end",{
-			winner:winner,
-			loser:loser
-		});
 	
 	},
 	close:function(){

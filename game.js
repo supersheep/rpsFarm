@@ -72,12 +72,12 @@ Board.prototype = {
 		["up","down","left","right"].forEach(function(dir){
 			playerB = self.get(pos[dir]());
 			if(playerB && !playerB.isGuessing() && playerB.level === playerA.level){
-				self.game.newGuess(playerA,playerB);
-				throw "found opponent";
+				throw {playerA:playerA,playerB:playerB};
 			}
 		});
 		}catch(e){
-			console.log(e);
+			console.log("found opponent");
+			self.game.newGuess(e.playerA,e.playerB);
 			// found
 		}
 	},
@@ -110,18 +110,20 @@ Board.prototype = {
 var Game = function(opt){
 	var edge = opt.edge,
 		maxPlayer = opt.maxPlayer;
-	
+		maxLevel = maxPlayer > opt.maxLevel ? opt.maxLevel : maxPlayer;
 	// TODO 推算maxPlayer与edge的关系，在不符合条件时返回，demo预设8x8 8players
 	
 
 	this.edge = opt.edge;
+	this.maxLevel = maxLevel;
 	this.maxPlayer = maxPlayer;
 	this.board = new Board(this,edge);
 	this.players = new List(Player,maxPlayer);
 	this.watchers = new List(Watcher);
+	this.winners = new List(Player);
 	this.guesses = new List(Guess);
 	
-	console.log("init game");
+	console.log("init game,maxPlayer,maxLevel",maxPlayer,maxLevel);
 	
 }
 
@@ -137,6 +139,7 @@ var fn = {
 	
 	
 	playGuess:function(player,guess,action){
+		console.log("game:play guess:",player,guess,action);
 		var player = this.players.get(player),
 			guess = this.guesses.get(guess),
 			action = Guess.ACTIONS[action];
@@ -168,12 +171,13 @@ var fn = {
 		}
 	},
 	newGuess:function(playerA,playerB){
+		console.log("game:new Guess");
 		var self = this,
 			guess = new Guess(playerA,playerB);
 		
 		guess.on("start",function(data){
-			console.log("guess on start");
 			self.emit("guess start",{
+				name:data.name,
 				playerA:data.playerA,
 				playerB:data.playerB
 			});
@@ -184,10 +188,12 @@ var fn = {
 				winner:data.winner,
 				loser:data.loser
 			});
+			self.checkStatus();
 		});
 		
-		guess.on("continue",function(){
+		guess.on("continue",function(data){
 			self.emit("guess continue",{
+				action:data.action,
 				playerA:data.playerA,
 				playerB:data.playerB
 			});
@@ -211,12 +217,38 @@ var fn = {
 		console.log("getting player "+name);
 		return this.players.get(name);
 	},
-	
-	addPlayer:function(name){
-		var player,watcher,count;
+	checkStatus:function(){
+		var players = this.players.all(),
+			winners = this.winners,
+			maxLevel = this.maxLevel;
 		
+		for(var i = 0 ;player = players[i] ; i++){
+			console.log("judge player.level,maxLevel",player.level,maxLevel);
+			if(player.level == maxLevel){
+				player.win();
+				this.players.remove(player);
+				this.board.kick(player);
+				winners.add(player);
+				this.emit("player win",player);
+			}
+			
+			if(this.players.count() < maxLevel){
+				this.emit("end",{
+					winners:this.winners.all(),
+					players:this.players.all()
+				});
+				break;
+			}
+		}
+		
+		
+	},
+	addPlayer:function(name,socketid){
+		var player,watcher,count,
+			eventdata = {name:name,socketid:socketid};
 		try{
-			player = new Player(name);
+			console.log("try new player with maxlevel",this.maxLevel);
+			player = new Player(name,socketid,this.maxLevel);
 			this.players.add(player);
 			this.board.put(this.board.greenland(),player);
 			
@@ -234,21 +266,21 @@ var fn = {
 		}catch(err){
 			if(err === "full" ){
 				try{
-					watcher = new Watcher(name);
+					watcher = new Watcher(name,socketid);
 					this.watchers.add(watcher);
 					this.emit("new watcher",watcher);
 				}catch(err){
 					if(err === "full"){
-						this.emit("watcher full");
+						this.emit("watcher full",data);
 					}else if(err === "exists"){
-						this.emit("watcher exists");
+						this.emit("watcher exists",data);
 					}else{
 						throw err;
 					}
 				}
-				this.emit("player full");
+				this.emit("player full",data);
 			}else if(err === "exists"){
-				this.emit("player exists");
+				this.emit("player exists",data);
 			}else{
 				throw err;
 			}
@@ -258,7 +290,7 @@ var fn = {
 		var watcher = this.watchers.get(name);
 		
 		this.watchers.remove(name);
-		this.emit("remove watcher");
+		this.emit("remove watcher",name);
 	},
 	removePlayer:function(name){
 		var player = this.players.get(name),
@@ -267,7 +299,7 @@ var fn = {
 		
 		this.players.remove(name);
 		this.board.kick(player);
-		this.emit("remove player");
+		this.emit("remove player",name);
 	},
 	start:function(){
 		if(!this._started){

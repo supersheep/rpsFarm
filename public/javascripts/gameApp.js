@@ -9,10 +9,14 @@ $(document).ready(function(){
 			name:name
 		});
 		
+		socket.on('new message',function(msg){
+			console.log(msg);
+		});
+		
 		socket.on('game:update player list',function(data){
 			gameClient.renderPlayerList(data.players,data.watchers,data.maxPlayer);
 		});
-		
+				
 		socket.on('game:player full',function(){
 			console.log("game:player full");	
 			gameClient.start();
@@ -25,6 +29,10 @@ $(document).ready(function(){
 		
 		socket.on('game:wait',function(obj){
 			gameClient.waitPlayer(obj.max,obj.current);
+		});
+		
+		socket.on('game:end',function(obj){
+			gameClient.end(obj);
 		});
 		
 		socket.on('board:render',function(matrix){

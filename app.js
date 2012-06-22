@@ -19,7 +19,144 @@ var connections = {};
 
 var game = new Game({
 	edge:8,
+	maxLevel:5,
 	maxPlayer:2
+});
+
+
+function updatePlayerList(){
+	io.sockets.emit("game:update player list",game.playerList());
+}
+
+function updateBoard(){
+	io.sockets.emit("board:render",game.board.matrix);
+}
+
+
+
+game.on("end",function(data){
+	io.sockets.emit("game:end",data);
+});
+
+game.on("new player",function(player){
+	var socket = connections[player.socket];
+	socket.set("name",player.name);
+	socket.set("role","player");
+	console.log("event:game[new player]");
+	updatePlayerList();
+	updateBoard();
+});
+
+game.on("new watcher",function(watcher){
+	var socket = connections[watcher.socket];
+	socket.set("name",watcher.name);
+	socket.set("role","watcher");
+	console.log("event:game[new watcher]",watcher);
+	updatePlayerList();
+	updateBoard();
+});
+
+game.on('remove player',function(){
+	console.log("event:game[remove player]");
+	updatePlayerList();
+	updateBoard();
+});
+
+game.on('remove watcher',function(){
+	console.log("event:game[remove watcher]");
+	updatePlayerList();
+	updateBoard();
+});
+
+
+
+game.on("wait",function(data){
+	console.log("event:game[wait]",data);
+	io.sockets.emit("game:wait",data);
+});
+
+game.on("start",function(){
+	console.log("event:game[start]");
+	io.sockets.emit("game:start");
+	updateBoard();
+});
+
+
+game.on('guess start',function(data){
+	console.log("event:game[guess start]",data.name);
+	connections[data.playerA.socket].emit("guess:start",{name:data.name,me:data.playerA,opponent:data.playerB});
+	connections[data.playerB.socket].emit("guess:start",{name:data.name,me:data.playerB,opponent:data.playerA});
+});
+
+game.on('guess continue',function(data){
+	console.log("event:game[guess continue]",data);
+	
+	var socketA = connections[data.playerA.socket],
+		socketB = connections[data.playerB.socket],
+		
+		action = Guess.transAction(data.action),
+		msg = util.format("draw with %s vs %s",action,action);
+		
+	socketA.emit("guess:reset");
+	console.log("socketA new message",msg);
+	socketA.emit("new message",msg);
+	
+	socketB.emit("guess:reset");
+	console.log("socketB new message",msg);
+	socketB.emit("new message",msg);
+});
+
+game.on('guess end',function(guess){
+	console.log("event:game[guess end]",guess.winner.name,guess.loser.name);
+	var winner_player = guess.winner.player,
+		winner_action = Guess.transAction(guess.winner.action),
+		loser_player = guess.loser.player,
+		loser_action = Guess.transAction(guess.loser.action);
+	
+	winner.player.levelUp();
+	loser.player.levelDown();
+	
+	msg = util.format("%s wins %s with %s vs %s",
+		winner_player.name,
+		loser_player.name,
+		winner_action,
+		loser_action);
+	
+	io.sockets.emit("new message",msg);
+	updateBoard();
+	connections[winner_player.socket].emit("guess:end");
+	connections[loser_player.socket].emit("guess:end");
+});
+
+game.on("player win",function(player){
+	var msg = util.format("player %s wins",player.name);
+	io.sockets.emit("new message","player win");
+	updateBoard();	
+});
+
+game.on("player full",function(data){
+	console.log("event:game[player full]");
+	connections[data.socketid].emit("game:player full",data.name);
+});
+
+game.on("player exists",function(data){
+	console.log("event:game[player exists]",name);
+	connections[data.socketid].emit("game:player exists",data.name);
+});
+
+game.on("watcher full",function(data){
+	console.log("event:game[watcher full]");
+	conenctions[data.socketid].emit("game:watcher full",data.name);
+});
+
+game.on("watcher exists",function(data){
+	console.log("event:game[watcher exists]",name);
+	connections[data.socketid].emit("game:watcher exists",data.name);
+});
+
+game.on('player move',function(matrix){
+	console.log("event:game[player move]");
+	io.sockets.emit("board:render",matrix);
 });
 
 // Configuration
@@ -59,120 +196,13 @@ io.sockets.on('connection',function(socket){
 	
 	console.log("event:io.sockets[connection]",id);
 	
-	function updatePlayerList(){
-		io.sockets.emit("game:update player list",game.playerList());
-	}
 	
-	function updateBoard(){
-		io.sockets.emit("board:render",game.board.matrix);
-	}
-	
-	game.on("new player",function(player){
-		player.socket = socket.id;
-		socket.set("role","player");
-		console.log("event:game[new player]");
-		updatePlayerList();
-		updateBoard();
-	});
-	
-	game.on("new watcher",function(watcher){
-		watcher.socket = socket.id;
-		socket.set("role","watcher");
-		console.log("event:game[new watcher]",watcher);
-		updatePlayerList();
-		updateBoard();
-	});
-	
-	game.on('remove player',function(){
-		console.log("event:game[remove player]");
-		updatePlayerList();
-		updateBoard();
-	});
-	
-	game.on('remove watcher',function(){
-		console.log("event:game[remove watcher]");
-		updatePlayerList();
-		updateBoard();
-	});
-	
-	
-	
-	game.on("wait",function(data){
-		console.log("event:game[wait]",data);
-		io.sockets.emit("game:wait",data);
-	});
-	
-	game.on("start",function(matrix){
-		console.log("event:game[start]");
-		io.sockets.emit("game:start");
-		updateBoard();
-	});
-	
-	game.on('guess end',function(guess){
-		console.log("event:game[guess end]",guess);
-		var winner_player = guess.winner.player,
-			winner_action = Guess.transAction(guess.winner.action),
-			loser_player = guess.loser.player,
-			loser_action = Guess.transAction(guess.loser.action);
-		
-		winner.player.levelUp();
-		loser.player.levelDown();
-		
-		msg = util.format("%s win %s with %s vs %s",
-			winner_player.name,
-			loser_player.name,
-			winner_action,
-			loser_action);
-		
-		io.sockets.emit("new message",msg);
-		updateBoard();
-		connections[player.socket].emit("guess:end");
-		connections[opponent.socket].emit("guess:end");
-	});
-	
-	game.on('guess continue',function(data){
-		console.log("event:game[guess continue]",data);
-		connections[data.playerA.socket].emit("guess:reset");
-		connections[data.playerB.socket].emit("guess:reset");
-	});
-	
-	game.on('guess start',function(data){
-		console.log("event:game[guess start]",data);
-		connections[playerA.socket].emit("guess:start",{name:data.name,me:data.playerA,opponent:data.playerB});
-		connections[playerB.socket].emit("guess:start",{name:data.name,me:data.playerB,opponent:data.playerA});
-	});
-	
-	game.on("player full",function(){
-		console.log("event:game[player full]");
-		socket.emit("game:player full");
-	});
-	
-	game.on("player exists",function(){
-		console.log("event:game[player exists]");
-		socket.emit("game:player exists");
-	});
-	
-	game.on("watcher full",function(){
-		console.log("event:game[watcher full]");
-		socket.emit("game:watcher full");
-	});
-	
-	game.on("watcher exists",function(){
-		console.log("event:game[watcher exists]");
-		socket.emit("game:watcher exists");
-	});
-	
-	game.on('player move',function(matrix){
-		console.log("event:game[player move]");
-		io.sockets.emit("board:render",matrix);
-	})
 	
 	// bind customs events
 	socket.on('attend',function(data){
 		var name = data.name;
 		console.log("event:socket[attend]",data);
-		game.addPlayer(name);
-		socket.set("name",name);
+		game.addPlayer(name,socket.id);
 	});
 	
 	socket.on('guess act',function(data){

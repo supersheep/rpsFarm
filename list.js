@@ -42,6 +42,9 @@ List.prototype = {
 		}
 		return -1;
 	},
+	forEach:function(func){
+		return this._list.forEach(func);
+	},
 	has:function(obj){
 		var index = this.indexOf(obj);
 		
@@ -49,7 +52,7 @@ List.prototype = {
 	},
 	remove:function(obj){
 		var index = this.indexOf(obj);
-		this._list.slice(index,1);
+		this._list.splice(index,1);
 	},
 	all:function(){
 		return this._list;
