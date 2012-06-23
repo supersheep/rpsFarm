@@ -10,7 +10,7 @@ $(document).ready(function(){
 		});
 		
 		socket.on('new message',function(msg){
-			console.log(msg);
+			gameClient.message(msg);
 		});
 		
 		socket.on('game:update player list',function(data){

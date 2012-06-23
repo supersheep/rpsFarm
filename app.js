@@ -36,6 +36,7 @@ function updateBoard(){
 
 game.on("end",function(data){
 	io.sockets.emit("game:end",data);
+	io.sockets.emit("new message","game ends");
 });
 
 game.on("new player",function(player){
@@ -43,6 +44,7 @@ game.on("new player",function(player){
 	socket.set("name",player.name);
 	socket.set("role","player");
 	console.log("event:game[new player]");
+	io.sockets.emit("new message","new player " + player.name);
 	updatePlayerList();
 	updateBoard();
 });
@@ -52,18 +54,21 @@ game.on("new watcher",function(watcher){
 	socket.set("name",watcher.name);
 	socket.set("role","watcher");
 	console.log("event:game[new watcher]",watcher);
+	io.sockets.emit("new message","new watcher " + watcher.name);
 	updatePlayerList();
 	updateBoard();
 });
 
-game.on('remove player',function(){
+game.on('remove player',function(name){
 	console.log("event:game[remove player]");
+	io.sockets.emit("new message",name + " goes out");
 	updatePlayerList();
 	updateBoard();
 });
 
-game.on('remove watcher',function(){
+game.on('remove watcher',function(name){
 	console.log("event:game[remove watcher]");
+	io.sockets.emit("new message",name + " goes out");
 	updatePlayerList();
 	updateBoard();
 });
@@ -78,6 +83,7 @@ game.on("wait",function(data){
 game.on("start",function(){
 	console.log("event:game[start]");
 	io.sockets.emit("game:start");
+	io.sockets.emit("new message","game start");
 	updateBoard();
 });
 
@@ -98,11 +104,9 @@ game.on('guess continue',function(data){
 		msg = util.format("draw with %s vs %s",action,action);
 		
 	socketA.emit("guess:reset");
-	console.log("socketA new message",msg);
 	socketA.emit("new message",msg);
 	
 	socketB.emit("guess:reset");
-	console.log("socketB new message",msg);
 	socketB.emit("new message",msg);
 });
 
@@ -130,7 +134,7 @@ game.on('guess end',function(guess){
 
 game.on("player win",function(player){
 	var msg = util.format("player %s wins",player.name);
-	io.sockets.emit("new message","player win");
+	io.sockets.emit("new message",msg);
 	updateBoard();	
 	updatePlayerList();
 });

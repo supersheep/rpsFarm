@@ -40,6 +40,10 @@ ul{list-style: none;}
 
 #winner_list{display:none;}
 
+#msgbox .body{height:90px;overflow:auto;}
+#msgbox .body .msg{padding:3px 10px;margin:5px;color:#333;border-left:4px solid #39d;}
+
+
 #waiting{
 	width: 550px;
 	height: 550px;

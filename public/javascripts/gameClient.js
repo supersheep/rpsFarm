@@ -16,7 +16,12 @@ var gameClient = {
 			console.log(winners,players);
 		}
 	},
-	
+	message:function(msg){
+		var msgbox = $('#msgbox'),
+			bd = msgbox.find('.body');
+		
+		bd.prepend($('<div class="msg" />').html(msg));
+	},
 	renderView:function(matrix){
 		var board = $('#board');
 			
