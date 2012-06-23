@@ -76,12 +76,33 @@ var gameClient = {
 		});
 	},
 	
-	renderPlayerList:function(players,watchers,maxPlayer){
+	renderWinnerList:function(winners){
+		var wrap = $("#winner_list"),
+			bd = wrap.find('.body');
+		
+		var ul = $('<ul />');	
+			
+		bd.empty().append(ul);
+		if(winners.length){
+			wrap.show();
+			winners.forEach(function(winner){
+				var li = $('<li />').addClass('winner');
+				li.html(winner.name);
+				ul.append(li);		
+			});
+		}
+	},
+	renderPlayerList:function(winners,players,watchers){
 		var wrap = $('#player_list'),
 			hd = wrap.find('.head'),
 			bd = wrap.find('.body');
 		
 		var ul = $('<ul />');
+		
+		
+		if(winners.length){
+			this.renderWinnerList(winners);
+		}
 		
 		players.forEach(function(player){
 			var li = $('<li />');
@@ -95,7 +116,7 @@ var gameClient = {
 			ul.append(li);
 		});
 		
-		hd.html(players.length + '/' + maxPlayer);
+		// hd.html("Player list");
 		bd.empty();
 		bd.append(ul);
 		

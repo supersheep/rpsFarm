@@ -313,6 +313,7 @@ var fn = {
 	},
 	playerList:function(){
 		return {
+			winners:this.winners.all(),
 			players:this.players.all(),
 			watchers:this.watchers.all(),
 			maxPlayer:this.maxPlayer	

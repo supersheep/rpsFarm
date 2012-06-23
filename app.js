@@ -132,6 +132,7 @@ game.on("player win",function(player){
 	var msg = util.format("player %s wins",player.name);
 	io.sockets.emit("new message","player win");
 	updateBoard();	
+	updatePlayerList();
 });
 
 game.on("player full",function(data){

@@ -14,7 +14,9 @@ $(document).ready(function(){
 		});
 		
 		socket.on('game:update player list',function(data){
-			gameClient.renderPlayerList(data.players,data.watchers,data.maxPlayer);
+			gameClient.renderPlayerList(data.winners,
+			data.players,
+			data.watchers);
 		});
 				
 		socket.on('game:player full',function(){
