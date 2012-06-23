@@ -54,5 +54,6 @@ ul{list-style: none;}
 .guessview .playerA{float:left;}
 .guessview .playerB{float:right;}
 .guessview .choices{margin:0 auto;}
-.guessview .choices .item{width:45px;height:45px;float:left;margin-right:32px;background-color: #fff;}
+.guessview .choices .item{width:45px;height:45px;float:left;margin-right:32px;background-color: #fff;border-radius: 22px;}
+.guessview .choices .item img{width: 44px;height: 44px;border-radius: 22px;}
 .guessview .choices .cloth{margin-right: 0;} 

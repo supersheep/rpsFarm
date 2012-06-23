@@ -269,18 +269,18 @@ var fn = {
 					watcher = new Watcher(name,socketid);
 					this.watchers.add(watcher);
 					this.emit("new watcher",watcher);
-				}catch(err){
+				}catch(err){					
 					if(err === "full"){
-						this.emit("watcher full",data);
+						this.emit("watcher full",eventdata);
 					}else if(err === "exists"){
-						this.emit("watcher exists",data);
+						this.emit("watcher exists",eventdata);
 					}else{
 						throw err;
 					}
 				}
-				this.emit("player full",data);
+				this.emit("player full",eventdata);
 			}else if(err === "exists"){
-				this.emit("player exists",data);
+				this.emit("player exists",eventdata);
 			}else{
 				throw err;
 			}

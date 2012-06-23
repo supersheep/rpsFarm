@@ -150,7 +150,7 @@ game.on("watcher full",function(data){
 });
 
 game.on("watcher exists",function(data){
-	console.log("event:game[watcher exists]",name);
+	console.log("event:game[watcher exists]",data.name);
 	connections[data.socketid].emit("game:watcher exists",data.name);
 });
 
@@ -201,6 +201,7 @@ io.sockets.on('connection',function(socket){
 	// bind customs events
 	socket.on('attend',function(data){
 		var name = data.name;
+		console.log('attend emitted!!!',socket.id);
 		console.log("event:socket[attend]",data);
 		game.addPlayer(name,socket.id);
 	});

@@ -37,8 +37,11 @@ var gameClient = {
 		}
 	},
 	waitPlayer:function(max,current){
-		var waitingOverlay = $('#waiting');
-		waitingOverlay.html("还差" + (max - current) + "人...");	
+		var waitingOverlay = $('#waiting'),
+			togo = max - current,
+			unit = togo == 1 ? "player" : "players";
+		
+		waitingOverlay.html([togo,unit,"to go"].join(" "));	
 	},
 	resetGuessView:function(){
 		var guessview =	$("#guessview");
@@ -88,7 +91,7 @@ var gameClient = {
 		
 		watchers.forEach(function(watcher){
 			var li = $('<li />').addClass('watcher');
-			li.html(watcher.name + '(观众)');
+			li.html(watcher.name + '(watcher)');
 			ul.append(li);
 		});
 		
