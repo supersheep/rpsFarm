@@ -16,11 +16,23 @@ var gameClient = {
 			console.log(winners,players);
 		}
 	},
-	message:function(msg){
+	message:function(from,msg){
 		var msgbox = $('#msgbox'),
 			bd = msgbox.find('.body');
+			msg = from == "sys" ? ("info:" + msg) : msg;
 		
-		bd.prepend($('<div class="msg" />').html(msg));
+		var li = $('<div class="msg" />').html(msg);
+		li.addClass(from);
+		bd.prepend(li);
+	},
+	renderPlayerCell:function(wrap,player){
+		var level = player ? "level" + player.level : "",
+			nametip = $('<div class="tip" />').html(player.name),
+			pblock = $('<div />').addClass(level + " icon").append(nametip);
+
+		wrap.addClass('player');
+		wrap.empty();
+		wrap.append(pblock);
 	},
 	renderView:function(matrix){
 		var board = $('#board');
@@ -30,12 +42,11 @@ var gameClient = {
 			var row = $('<div class="row" />');
 			var rowdata = matrix[i];
 			for(var j = 0,m=rowdata.length ; j < m ; j++){
-				var player = rowdata[j];
-				var level = player ? "level" + player.level : "";
-				var name = player ? player.name : "";
-				var nametip = $('<div class="tip" />').html(name);
-				var grid = $('<div class="grid ' + level + '" />');
-				grid.append(nametip);
+				var player = rowdata[j],
+					grid = $('<div class="grid" />');
+				
+				
+				player && this.renderPlayerCell(grid,player);
 				row.append(grid);
 			}
 			board.append(row);
@@ -57,10 +68,13 @@ var gameClient = {
 		guessview.hide();
 	},
 	renderGuessView:function(me,opp){
-		var guessview =	$("#guessview");
+		var guessview =	$("#guessview"),
+			playerA = guessview.find('.playerA'),
+			playerB = guessview.find('.playerB');
+			
 		guessview.show();
-		guessview.find('.playerA').html(me.name);
-		guessview.find('.playerB').html(opp.name);
+		this.renderPlayerCell(playerA,me);
+		this.renderPlayerCell(playerB,opp);
 		guessview.find('.item').show();
 	},
 	bindGuessView:function(player,guess){
@@ -81,22 +95,6 @@ var gameClient = {
 		});
 	},
 	
-	renderWinnerList:function(winners){
-		var wrap = $("#winner_list"),
-			bd = wrap.find('.body');
-		
-		var ul = $('<ul />');	
-			
-		bd.empty().append(ul);
-		if(winners.length){
-			wrap.show();
-			winners.forEach(function(winner){
-				var li = $('<li />').addClass('winner');
-				li.html(winner.name);
-				ul.append(li);		
-			});
-		}
-	},
 	renderPlayerList:function(winners,players,watchers){
 		var wrap = $('#player_list'),
 			hd = wrap.find('.head'),
@@ -105,12 +103,14 @@ var gameClient = {
 		var ul = $('<ul />');
 		
 		
-		if(winners.length){
-			this.renderWinnerList(winners);
-		}
+		winners.forEach(function(winner){
+			var li = $('<li />').addClass('winner');
+			li.html(winner.name + '(won)');
+			ul.append(li);	
+		});
 		
 		players.forEach(function(player){
-			var li = $('<li />');
+			var li = $('<li />').addClass('player');
 			li.html(player.name);
 			ul.append(li);
 		});

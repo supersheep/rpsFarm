@@ -145,7 +145,7 @@ game.on("player full",function(data){
 });
 
 game.on("player exists",function(data){
-	console.log("event:game[player exists]",name);
+	console.log("event:game[player exists]",data.name);
 	connections[data.socketid].emit("game:player exists",data.name);
 });
 
@@ -229,6 +229,10 @@ io.sockets.on('connection',function(socket){
 		socket.get('name',function(err,name){
 			game.movePlayer(name,dir);
 		});
+	});
+	
+	socket.on('message',function(data){
+		io.sockets.emit("new chat",data.name+":"+data.msg);
 	});
 	
 	socket.on('disconnect', function () {

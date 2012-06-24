@@ -3,14 +3,32 @@ var socket = io.connect("http://localhost:3000");
 $(document).ready(function(){
 		
 	var name = prompt("input your code");
+	var chatinput = $("#chat_input");
 	
 	if(name){
+	
+		chatinput.keyup(function(e){
+			if(e.keyCode == 13){
+				socket.emit('message',{
+					name:name,
+					msg:chatinput.val()
+				});
+				chatinput.val('');
+			}
+			
+		})
+	
+	
 		socket.emit('attend',{
 			name:name
 		});
 		
 		socket.on('new message',function(msg){
-			gameClient.message(msg);
+			gameClient.message("sys",msg);
+		});
+		
+		socket.on('new chat',function(msg){
+			gameClient.message("usr",msg);
 		});
 		
 		socket.on('game:update player list',function(data){
