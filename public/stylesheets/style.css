@@ -3,7 +3,7 @@ ul{list-style: none;}
 .clear:after,.row:after,
 .guessview .board:after,
 .guessview .choices:after{display: block;clear: both;content: '';}
-#wrap{margin:0 auto;width:800px;}
+#wrap{margin:0 auto;width:800px;position:relative;}
 
 #main{background:#cdeb90;}
 
@@ -40,8 +40,19 @@ ul{list-style: none;}
 	padding:3px 10px;
 }
 
+#game_result{height: 550px;background:white;position: absolute;display:none;width: 780px;left: 10px;top: 10px;z-index:5;}
+#game_result h2.title{margin: 24px auto;text-align: center;font-size:32px;}
+#game_result .winners h3{margin: 20px;font-size: 20px;}
+#game_result .winners{border-bottom:1px dashed #ccc;margin-bottom: 20px;padding-bottom: 20px;}
+#game_result .player{
+    float: left;
+    width: 380px;
+    margin-left: 10px;
+}
+#game_result .player .icon{float:left;}
+#game_result .player .name{margin-left:80px;line-height:60px;font-size:18px;}
 
-#player_list .body{height: 196px;overflow:auto;}
+#player_list .body{height: 204px;overflow:auto;}
 
 
 #msgbox .body{height:90px;overflow:auto;}
@@ -50,15 +61,7 @@ ul{list-style: none;}
 #msgbox .body .usr{border-left:4px solid #7cc052;}
 #chat_input{width: 200px;margin: 5px 5px;padding: 4px;border: 1px solid #CCC;outline: none;}
 
-#waiting{
-	width: 550px;
-	height: 550px;
-	float:left;
-	margin: 10px;
-	line-height: 550px;
-	background: #fff;
-	text-align: center;
-}
+#waiting{width: 550px;	height: 550px;	float:left;	margin: 10px;	line-height: 550px;	background: #fff;	text-align: center;}
 
 .guessview{background: #f5f5f5;padding:10px;display:none;}
 .guessview .board{margin-bottom: 10px;position:relative;}

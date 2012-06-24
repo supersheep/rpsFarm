@@ -35,7 +35,7 @@ Board.prototype = {
 		this.matrix[pos.y][pos.x] = val
 	},
 	kick:function(player){
-		this.set(player.position,null);
+		player && player.position && this.set(player.position,null);
 	},
 	put:function(pos,player){
 		if(pos){

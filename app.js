@@ -243,6 +243,7 @@ io.sockets.on('connection',function(socket){
 					if(role === "watcher"){
 						game.removeWatcher(name);
 					}else if(role === "player"){
+						console.log("removing player " + name); 
 						game.removePlayer(name);
 					}
 					

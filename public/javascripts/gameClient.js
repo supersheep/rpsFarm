@@ -8,12 +8,25 @@ var gameClient = {
 		}
 	},
 	end:function(obj){
-		var winners,players;
+		var wrap = $('#game_result');
+		
+		wrap.show();
+		function render(cont,list){
+			cont.empty();
+			list.forEach(function(one){
+				var player = $('<div class="player" />'),
+					icon = $('<div class="icon" />').addClass('level' + one.level),
+					name = $('<div class="name" />').html(one.name);
+					
+				player.append(icon).append(name);
+				cont.append(player)
+			});
+		}
+		
 		if(this.started){
 			this.started = false;
-			winners = obj.winners;
-			players = obj.players;
-			console.log(winners,players);
+			render(wrap.find('.winner_list'),obj.winners);
+			render(wrap.find('.players'),obj.players);
 		}
 	},
 	message:function(from,msg){
