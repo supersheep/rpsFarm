@@ -2,11 +2,14 @@ var Event = require('events').EventEmitter;
 var Player = require("./player").Player;
 
 function Guess(p1,p2){
+	var name = p1.name + ':' + p2.name;
 	this.playerA = p1;
 	this.playerB = p2;
 	p1.opponent = p2.name;
 	p2.opponent = p1.name;
-	this.name = p1.name + ':' + p2.name;
+	this.name = name;
+	p1.guess = name;
+	p2.guess = name;
 	this.playground = [];
 }
 
@@ -17,7 +20,7 @@ Guess.ACTIONS = {
 };
 
 Guess.transAction = function(num){
-	return {1:"石头",2:"剪刀",3:"布"}[num];
+	return {"1":"石头","2":"剪刀","3":"布","-1":"掉线"}[num];
 }
 
 Guess.prototype = new Event();
@@ -73,7 +76,10 @@ var fn = {
 			});
 			return;
 		}else{
-			if( actionB - actionA == 1 || (actionB == 1 && actionA == 3) ){
+			
+			if( actionB - actionA == 1 || 
+				(actionB == 1 && actionA == 3) ||
+				actionB == -1){
 				winner = playground[0];
 				loser = playground[1];
 			}else{
@@ -91,10 +97,12 @@ var fn = {
 	
 	},
 	close:function(){
-		this.playerA.opponent = null;
-		this.playerA._guessing = false;
-		this.playerB.opponent = null;
-		this.playerB._guessing = false;
+		var p1 = this.playerA,
+			p2 = this.playerB;
+			
+		p1.opponent = p2.opponent = null;
+		p1.guess = p2.guess = null;
+		p1._guessing = p2._guessing = false;
 	}
 	
 }

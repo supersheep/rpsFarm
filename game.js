@@ -218,10 +218,10 @@ var fn = {
 		var guesses = this.guesses;
 		guess.close();
 		guesses.remove(guess);
-	},
+	},/*
 	getGuess:function(name){
 		return this.guesses.get(name);
-	},
+	},*/
 	getPlayer:function(name){
 		var matrix = this.matrix,
 			edge = this.edge;
@@ -365,6 +365,24 @@ var fn = {
 			}
 			process.stdout.write('\n');
 		}
+	},
+	// this should be protected later
+	checkGuess:function(name){
+		var player,guess;
+		
+		player = this.players.get(name);
+		console.log('player:name',player,name);
+		if(!player || !player.guess){
+			return false;
+		}
+		
+		guess = this.guesses.get(player.guess);
+		
+		if(!guess){
+			return false;
+		}
+		
+		guess.act(player,-1);
 	},
 	userlist:function(){
 		console.log(this.players);

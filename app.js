@@ -20,7 +20,7 @@ var connections = {};
 var game = new Game({
 	edge:8,
 	maxLevel:5,
-	maxPlayer:8
+	maxPlayer:4
 });
 
 
@@ -101,11 +101,15 @@ game.on('guess continue',function(data){
 		action = Guess.transAction(data.action),
 		msg = util.format("%s 对 %s 平局",action,action);
 		
-	socketA.emit("guess:reset",action);
-	socketA.emit("new message",msg);
+	if(socketA){
+		socketA.emit("guess:reset",action);
+		socketA.emit("new message",msg);
+	}
 	
-	socketB.emit("guess:reset");
-	socketB.emit("new message",msg);
+	if(socketB){
+		socketB.emit("guess:reset");
+		socketB.emit("new message",msg);
+	}
 });
 
 game.on('guess end',function(guess){
@@ -126,8 +130,9 @@ game.on('guess end',function(guess){
 	
 	io.sockets.emit("new message",msg);
 	updateBoard();
-	connections[winner_player.socket].emit("guess:end");
-	connections[loser_player.socket].emit("guess:end");
+	
+	winner_player && connections[winner_player.socket].emit("guess:end");
+	loser_player && connections[loser_player.socket].emit("guess:end");
 });
 
 game.on("player win",function(player){
@@ -248,12 +253,13 @@ io.sockets.on('connection',function(socket){
 						game.removeWatcher(name);
 					}else if(role === "player"){
 						console.log("removing player " + name); 
+						game.checkGuess(name);
 						game.removePlayer(name);
 					}
 					
 					if(game.started()){
-						updateBoard();
 						game.checkStatus();
+						updateBoard();
 					}
 					delete connections[socket.id];
 					console.log("game players:",game.players.all().map(function(player){return player.name}));
