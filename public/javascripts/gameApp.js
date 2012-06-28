@@ -31,6 +31,10 @@ $(document).ready(function(){
 			gameClient.message("usr",msg);
 		});
 		
+		socket.on('game:ended',function(){
+			alert("Your are late, game was over");	
+		});
+		
 		socket.on('game:update player list',function(data){
 			gameClient.renderPlayerList(data.winners,
 			data.players,

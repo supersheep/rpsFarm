@@ -32,8 +32,6 @@ function updateBoard(){
 	io.sockets.emit("board:render",game.board.matrix);
 }
 
-
-
 game.on("end",function(data){
 	io.sockets.emit("game:end",data);
 	io.sockets.emit("new message","game ends");
@@ -149,9 +147,15 @@ game.on("player exists",function(data){
 	connections[data.socketid].emit("game:player exists",data.name);
 });
 
+
+game.on('ended',function(data){
+	console.log("event:game[ended]");
+	connections[data.socketid].emit("game:ended");
+});
+
 game.on("watcher full",function(data){
 	console.log("event:game[watcher full]");
-	conenctions[data.socketid].emit("game:watcher full",data.name);
+	connections[data.socketid].emit("game:watcher full",data.name);
 });
 
 game.on("watcher exists",function(data){
@@ -249,6 +253,7 @@ io.sockets.on('connection',function(socket){
 					
 					if(game.started()){
 						updateBoard();
+						game.checkStatus();
 					}
 					delete connections[socket.id];
 					console.log("game players:",game.players.all().map(function(player){return player.name}));

@@ -113,7 +113,8 @@ var Game = function(opt){
 		maxLevel = maxPlayer > opt.maxLevel ? opt.maxLevel : maxPlayer;
 	// TODO 推算maxPlayer与edge的关系，在不符合条件时返回，demo预设8x8 8players
 	
-
+	this._started = false;
+	this._ended = false;
 	this.edge = opt.edge;
 	this.maxLevel = maxLevel;
 	this.maxPlayer = maxPlayer;
@@ -233,20 +234,34 @@ var fn = {
 			}
 			
 			if(this.players.count() < maxLevel){
-				this.emit("end",{
-					winners:this.winners.all(),
-					players:this.players.all()
-				});
+				this.end();
 				break;
 			}
 		}
 		
 		
 	},
+	end:function(){
+		this._ended = true;
+		this.emit("end",{
+			winners:this.winners.all(),
+			players:this.players.all()
+		});	
+	},
 	addPlayer:function(name,socketid){
 		var player,watcher,count,
 			eventdata = {name:name,socketid:socketid};
 		try{
+			
+			if(this._ended){
+				throw "ended";
+			}
+			
+			if(this._started){
+				throw "full";
+			}
+			
+		
 			console.log("try new player with maxlevel",this.maxLevel);
 			player = new Player(name,socketid,this.maxLevel);
 			this.players.add(player);
@@ -281,6 +296,8 @@ var fn = {
 				this.emit("player full",eventdata);
 			}else if(err === "exists"){
 				this.emit("player exists",eventdata);
+			}else if(err === "ended"){
+				this.emit("ended",eventdata);
 			}else{
 				throw err;
 			}
