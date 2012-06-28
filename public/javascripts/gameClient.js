@@ -9,7 +9,7 @@ var gameClient = {
 	},
 	end:function(obj){
 		var wrap = $('#game_result');
-		
+		this.closeGuessView();
 		wrap.show();
 		function render(cont,list){
 			cont.empty();
@@ -67,27 +67,35 @@ var gameClient = {
 	},
 	waitPlayer:function(max,current){
 		var waitingOverlay = $('#waiting'),
-			togo = max - current,
-			unit = togo == 1 ? "player" : "players";
+			togo = max - current;
+			// unit = togo == 1 ? "player" : "players";
 		
-		waitingOverlay.html([togo,unit,"to go"].join(" "));	
+		waitingOverlay.html(["还差",togo,"人"].join(" "));	
 	},
 	resetGuessView:function(){
 		var guessview =	$("#guessview");
+		this.showHint('平局，请重新出拳');
 		guessview.find('.item').show();
 	},
 	closeGuessView:function(){
 		var guessview =	$("#guessview");
+		guessview.find('.item').unbind('click');
 		guessview.hide();
 	},
 	renderGuessView:function(me,opp){
 		var guessview =	$("#guessview"),
+			wrap = $('#wrap'),
 			playerA = guessview.find('.playerA'),
 			playerB = guessview.find('.playerB');
-			
+		
+		
 		guessview.show();
 		this.renderPlayerCell(playerA,me);
 		this.renderPlayerCell(playerB,opp);
+		guessview.css({
+			top:(wrap.height() - guessview.height()) / 2,
+			left:(wrap.width() - guessview.width())/2
+		});
 		guessview.find('.item').show();
 	},
 	bindGuessView:function(player,guess){
@@ -118,7 +126,7 @@ var gameClient = {
 		
 		winners.forEach(function(winner){
 			var li = $('<li />').addClass('winner');
-			li.html(winner.name + '(won)');
+			li.html(winner.name + '(已胜出)');
 			ul.append(li);	
 		});
 		
@@ -130,7 +138,7 @@ var gameClient = {
 		
 		watchers.forEach(function(watcher){
 			var li = $('<li />').addClass('watcher');
-			li.html(watcher.name + '(watcher)');
+			li.html(watcher.name + '(观众)');
 			ul.append(li);
 		});
 		

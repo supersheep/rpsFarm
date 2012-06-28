@@ -1,12 +1,19 @@
-var socket = io.connect("http://localhost:3000");
+var socket = io.connect("http://192.168.63.83:3000");
+
+
 
 $(document).ready(function(){
 		
-	var name = prompt("input your code");
-	var chatinput = $("#chat_input");
 	
-	if(name){
+	requireName()
+});
+
+
+function requireName(){
 	
+	if(name = prompt("输入你的名字")){
+	
+		var chatinput = $("#chat_input");
 		chatinput.keyup(function(e){
 			if(e.keyCode == 13){
 				socket.emit('message',{
@@ -77,11 +84,10 @@ $(document).ready(function(){
 		socket.on('guess:end',function(){
 			gameClient.closeGuessView();
 		});
-		
-		
-		
+	}else{
+		requireName();
 	}
-});
+}
 
 $(document).on('keyup',function(e){
 	var keymap = {
