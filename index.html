@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>GroupUp Game</title>
+	<title>村夫农场</title>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="/javascripts/jquery.js"></script>
 	<script type="text/javascript" src="/javascripts/gameClient.js"></script>
@@ -10,18 +10,31 @@
 </head>
 <body>
 	
-	<div id="wrap">
-	
+	<div id="wrap">	
 		<div id="game_result">
-			<h2 class="title">Game Over</h2>
+			<h2 class="title">游戏结束</h2>
 			<div class="winners clear">
-				<h3>winners</h3>
+				<h3>胜出者</h3>
 				<div class="winner_list"></div>
 			</div>
 			<div class="players">
 			</div>
 		</div>
-	
+		
+		<div class="hint" id="hint"></div>
+		
+		<div class="guessview" id="guessview">
+			<div class="board">
+			<div class="playerA player"></div>
+			<div class="playerB player"></div>
+			<div class="stage">vs</div>
+			</div>
+			<div class="choices">
+				<div class="item scissors"><img src="/images/scissors.png" title="scissors" /></div>
+				<div class="item stone"><img src="/images/rock.png" title="rock" /></div>
+				<div class="item cloth"><img src="/images/paper.png" title="paper" /></div>
+			</div>
+		</div>
 	
 		<div id="main" class="clear">
 			<div id="waiting"></div>
@@ -30,29 +43,16 @@
 			</div>
 			<div id="aside">
 				<div class="sidebox player_list" id="player_list">
-					<div class="head">Player List</div>
+					<div class="head">玩家列表</div>
 					<div class="body">
 					</div>
 				</div>
 				
 				<div class="sidebox" id="msgbox">
-					<div class="head">Message Box</div>
+					<div class="head">聊天盒</div>
 					<div class="body"></div>
 					<div class="chat">
 						<input id="chat_input" placeholder="type to chat" />
-					</div>
-				</div>
-				
-				<div class="guessview" id="guessview">
-					<div class="board">
-					<div class="playerA player"></div>
-					<div class="playerB player"></div>
-					<div class="stage">vs</div>
-					</div>
-					<div class="choices">
-						<div class="item scissors"><img src="/images/scissors.png" title="scissors" /></div>
-						<div class="item stone"><img src="/images/rock.png" title="rock" /></div>
-						<div class="item cloth"><img src="/images/paper.png" title="paper" /></div>
 					</div>
 				</div>
 			</div>
