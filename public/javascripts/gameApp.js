@@ -39,7 +39,7 @@ function requireName(){
 		});
 		
 		socket.on('game:ended',function(){
-			alert("Your are late, game was over");	
+			alert("你来晚了，游戏已经结束咯");	
 		});
 		
 		socket.on('game:update player list',function(data){

@@ -63,7 +63,10 @@ ul{list-style: none;}
 
 #waiting{width: 550px;	height: 550px;	float:left;	margin: 10px;	line-height: 550px;	background: #fff;	text-align: center;}
 
-.guessview{background: #f5f5f5;padding:80px;display:none;border:1px solid #ccc;position:absolute;z-index:10;}
+
+#hint{display: none;padding: 20px;position: absolute;background: #AAA;color: white;border-radius: 15px;width: 200px;text-align: center;font-size: 16px;z-index:20;}
+
+.guessview{background: #f5f5f5;padding:80px;display:none;border:1px solid #ccc;position:absolute;z-index:10;width:200px;}
 .guessview .board{margin-bottom: 10px;position:relative;}
 .guessview .board .stage{position: absolute;left: 87px;top: 15px;font-size: 24px;}
 .guessview .player{width:60px;height:60px;background: #fff;position:relative;}

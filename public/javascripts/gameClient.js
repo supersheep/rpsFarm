@@ -90,13 +90,13 @@ var gameClient = {
 		
 		
 		guessview.show();
-		this.renderPlayerCell(playerA,me);
-		this.renderPlayerCell(playerB,opp);
 		guessview.css({
-			top:(wrap.height() - guessview.height()) / 2,
-			left:(wrap.width() - guessview.width())/2
+			top:(wrap.outerHeight() - guessview.outerHeight()) / 2,
+			left:(wrap.outerWidth() - guessview.outerWidth())/2
 		});
 		guessview.find('.item').show();
+		this.renderPlayerCell(playerA,me);
+		this.renderPlayerCell(playerB,opp);
 	},
 	bindGuessView:function(player,guess){
 		var guessview = $("#guessview");
@@ -115,7 +115,21 @@ var gameClient = {
 			});
 		});
 	},
-	
+	showHint:function(msg){
+		var wrap = $('#wrap'),	
+			hint = $('#hint');
+			
+		hint.css({
+			top:(wrap.outerHeight() - hint.outerHeight()) / 2,
+			left:(wrap.outerWidth() - hint.outerWidth())/2
+		});
+		
+		hint.html(msg);
+		hint.fadeIn();
+		setTimeout(function(){
+			hint.fadeOut();
+		},800);
+	},
 	renderPlayerList:function(winners,players,watchers){
 		var wrap = $('#player_list'),
 			hd = wrap.find('.head'),
