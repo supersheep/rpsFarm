@@ -110,7 +110,7 @@ Board.prototype = {
 var Game = function(opt){
 	var edge = opt.edge,
 		maxPlayer = opt.maxPlayer,
-		maxLevel = this.maxLevel = this.getMaxLevel(maxPlayer);
+		maxLevel = this.maxLevel = this.getMaxLevel(opt.maxLevel);
 	// TODO 推算maxPlayer与edge的关系，在不符合条件时返回，demo预设8x8 8players
 	
 	this._started = false;

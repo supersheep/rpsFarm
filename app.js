@@ -20,7 +20,7 @@ var connections = {};
 var game = new Game({
 	edge:8,
 	maxLevel:5,
-	maxPlayer:4
+	maxPlayer:8
 });
 
 
