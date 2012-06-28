@@ -20,7 +20,7 @@ var connections = {};
 var game = new Game({
 	edge:8,
 	maxLevel:5,
-	maxPlayer:2
+	maxPlayer:4
 });
 
 
@@ -34,7 +34,7 @@ function updateBoard(){
 
 game.on("end",function(data){
 	io.sockets.emit("game:end",data);
-	io.sockets.emit("new message","game ends");
+	io.sockets.emit("new message","游戏结束");
 });
 
 game.on("new player",function(player){
@@ -42,7 +42,7 @@ game.on("new player",function(player){
 	socket.set("name",player.name);
 	socket.set("role","player");
 	console.log("event:game[new player]");
-	io.sockets.emit("new message","new player " + player.name);
+	io.sockets.emit("new message","玩家" + player.name + "刚刚加入");
 	updatePlayerList();
 	updateBoard();
 });
@@ -52,21 +52,21 @@ game.on("new watcher",function(watcher){
 	socket.set("name",watcher.name);
 	socket.set("role","watcher");
 	console.log("event:game[new watcher]",watcher);
-	io.sockets.emit("new message","new watcher " + watcher.name);
+	io.sockets.emit("new message","观众" + watcher.name + "刚刚加入");
 	updatePlayerList();
 	updateBoard();
 });
 
 game.on('remove player',function(name){
 	console.log("event:game[remove player]");
-	io.sockets.emit("new message",name + " goes out");
+	io.sockets.emit("new message",name + "退出");
 	updatePlayerList();
 	updateBoard();
 });
 
 game.on('remove watcher',function(name){
 	console.log("event:game[remove watcher]");
-	io.sockets.emit("new message",name + " goes out");
+	io.sockets.emit("new message",name + "退出");
 	updatePlayerList();
 	updateBoard();
 });
@@ -81,7 +81,7 @@ game.on("wait",function(data){
 game.on("start",function(){
 	console.log("event:game[start]");
 	io.sockets.emit("game:start");
-	io.sockets.emit("new message","game start");
+	io.sockets.emit("new message","游戏开始");
 	updateBoard();
 });
 
@@ -99,9 +99,9 @@ game.on('guess continue',function(data){
 		socketB = connections[data.playerB.socket],
 		
 		action = Guess.transAction(data.action),
-		msg = util.format("draw with %s vs %s",action,action);
+		msg = util.format("%s 对 %s 平局",action,action);
 		
-	socketA.emit("guess:reset");
+	socketA.emit("guess:reset",action);
 	socketA.emit("new message",msg);
 	
 	socketB.emit("guess:reset");
@@ -118,11 +118,11 @@ game.on('guess end',function(guess){
 	winner.player.levelUp();
 	loser.player.levelDown();
 	
-	msg = util.format("%s wins %s with %s vs %s",
+	msg = util.format("%s 以 %s 对 %s 打败了 %s",
 		winner_player.name,
-		loser_player.name,
 		winner_action,
-		loser_action);
+		loser_action,
+		loser_player.name);
 	
 	io.sockets.emit("new message",msg);
 	updateBoard();
@@ -131,7 +131,7 @@ game.on('guess end',function(guess){
 });
 
 game.on("player win",function(player){
-	var msg = util.format("player %s wins",player.name);
+	var msg = util.format("玩家 %s 胜出",player.name);
 	io.sockets.emit("new message",msg);
 	updateBoard();	
 	updatePlayerList();

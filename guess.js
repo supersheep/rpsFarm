@@ -17,7 +17,7 @@ Guess.ACTIONS = {
 };
 
 Guess.transAction = function(num){
-	return {1:"stone",2:"scissors",3:"cloth"}[num];
+	return {1:"石头",2:"剪刀",3:"布"}[num];
 }
 
 Guess.prototype = new Event();

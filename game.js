@@ -109,14 +109,13 @@ Board.prototype = {
 
 var Game = function(opt){
 	var edge = opt.edge,
-		maxPlayer = opt.maxPlayer;
-		maxLevel = maxPlayer > opt.maxLevel ? opt.maxLevel : maxPlayer;
+		maxPlayer = opt.maxPlayer,
+		maxLevel = this.maxLevel = this.getMaxLevel(maxPlayer);
 	// TODO 推算maxPlayer与edge的关系，在不符合条件时返回，demo预设8x8 8players
 	
 	this._started = false;
 	this._ended = false;
 	this.edge = opt.edge;
-	this.maxLevel = maxLevel;
 	this.maxPlayer = maxPlayer;
 	this.board = new Board(this,edge);
 	this.players = new List(Player,maxPlayer);
@@ -138,6 +137,10 @@ var fn = {
 	
 	constructor :Game,
 	
+	getMaxLevel:function(num){
+		var num = num || this.players.count();
+		return num > this.maxLevel ? this.maxLevel : num;
+	},
 	
 	playGuess:function(player,guess,action){
 		console.log("game:play guess:",player,guess,action);
@@ -201,7 +204,15 @@ var fn = {
 		});
 		
 		guess.start();
-		this.guesses.add(guess);
+		try{
+			this.guesses.add(guess);
+		}catch(err){
+			if(err == "exists"){
+				// do nothing
+			}else{
+				throw err;
+			}
+		}
 	},
 	closeGuess:function(guess){
 		var guesses = this.guesses;
@@ -221,7 +232,7 @@ var fn = {
 	checkStatus:function(){
 		var players = this.players.all(),
 			winners = this.winners,
-			maxLevel = this.maxLevel;
+			maxLevel = this.getMaxLevel();
 		
 		for(var i = 0 ;player = players[i] ; i++){
 			console.log("judge player.level,maxLevel",player.level,maxLevel);
@@ -250,6 +261,7 @@ var fn = {
 	},
 	addPlayer:function(name,socketid){
 		var player,watcher,count,
+			maxLevel = this.maxLevel;
 			eventdata = {name:name,socketid:socketid};
 		try{
 			
@@ -262,8 +274,8 @@ var fn = {
 			}
 			
 		
-			console.log("try new player with maxlevel",this.maxLevel);
-			player = new Player(name,socketid,this.maxLevel);
+			console.log("try new player with maxlevel",maxLevel);
+			player = new Player(name,socketid,maxLevel);
 			this.players.add(player);
 			this.board.put(this.board.greenland(),player);
 			
