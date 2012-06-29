@@ -73,7 +73,7 @@ function requireName(){
 		socket.on('guess:start',function(data){
 			// playername, guessname
 			console.log("guess:start");
-			gameClient.bindGuessView(name,data.name);
+			gameClient.bindGuessView(name);
 			gameClient.renderGuessView(data.me,data.opponent);
 		});
 		

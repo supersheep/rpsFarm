@@ -83,11 +83,27 @@ var gameClient = {
 		guessview.hide();
 	},
 	renderGuessView:function(me,opp){
-		var guessview =	$("#guessview"),
+		var self = this,
+			guessview =	$("#guessview"),
 			wrap = $('#wrap'),
+			stage = guessview.find('.stage'),
 			playerA = guessview.find('.playerA'),
-			playerB = guessview.find('.playerB');
+			playerB = guessview.find('.playerB'),
+			count = this.count = 15;
 		
+		function showCount(){
+			stage.html(count);
+			count -= 1;
+			if(count == 0){
+				self.count = null;
+				clearInterval(self.itv);
+				self.itv = null;
+				self.doGuess(me,Math.floor(Math.random()*3) + 1);
+			}
+			
+		}
+		
+		this.itv = setInterval(showCount,1000);
 		
 		guessview.show();
 		guessview.css({
@@ -98,21 +114,33 @@ var gameClient = {
 		this.renderPlayerCell(playerA,me);
 		this.renderPlayerCell(playerB,opp);
 	},
-	bindGuessView:function(player,guess){
-		var guessview = $("#guessview");
+	doGuess:function(player,action){
+		var guessview = $("#guessview"),
+			els = guessview.find('.item');
+		
+		this.count = null;
+		clearInterval(this.itv);
+		els.hide();
+		for(var i = 0 ; i < els.length ; i++){
+			
+			el = els.eq(i);
+			if(el.attr('data-action') == action){
+				el.show();
+				break;
+			}
+		}
+		
+		socket.emit("guess act",{
+			player:player,
+			action:action
+		});
+	},
+	bindGuessView:function(player){
+		var self = this,
+			guessview = $("#guessview");
 		
 		guessview.find('.item').on('click',function(e){
-			var el = $(this),
-				action = el.attr('class').split(' ')[1].toUpperCase();
-				
-			guessview.find('.item').hide();
-			el.show();
-			
-			socket.emit("guess act",{
-				player:player,
-				guess:guess,
-				action:action
-			});
+			self.doGuess(player,$(this).attr('data-action'));
 		});
 	},
 	showHint:function(msg){

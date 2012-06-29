@@ -142,11 +142,10 @@ var fn = {
 		return num > this.maxLevel ? this.maxLevel : num;
 	},
 	
-	playGuess:function(player,guess,action){
-		console.log("game:play guess:",player,guess,action);
+	playGuess:function(player,action){
+		console.log("game:play guess:",player,action);
 		var player = this.players.get(player),
-			guess = this.guesses.get(guess),
-			action = Guess.ACTIONS[action];
+			guess = player && this.guesses.get(player.guess);
 		guess.act(player,action);
 	},
 	movePlayer:function(name,dir){
@@ -235,7 +234,6 @@ var fn = {
 			maxLevel = this.getMaxLevel();
 		
 		for(var i = 0 ;player = players[i] ; i++){
-			console.log("judge player.level,maxLevel",player.level,maxLevel);
 			if(player.level == maxLevel){
 				player.win();
 				this.players.remove(player);

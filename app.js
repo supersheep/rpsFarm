@@ -20,7 +20,7 @@ var connections = {};
 var game = new Game({
 	edge:8,
 	maxLevel:5,
-	maxPlayer:4
+	maxPlayer:8
 });
 
 
@@ -88,8 +88,8 @@ game.on("start",function(){
 
 game.on('guess start',function(data){
 	console.log("event:game[guess start]",data.name);
-	connections[data.playerA.socket].emit("guess:start",{name:data.name,me:data.playerA,opponent:data.playerB});
-	connections[data.playerB.socket].emit("guess:start",{name:data.name,me:data.playerB,opponent:data.playerA});
+	connections[data.playerA.socket].emit("guess:start",{me:data.playerA,opponent:data.playerB});
+	connections[data.playerB.socket].emit("guess:start",{me:data.playerB,opponent:data.playerA});
 });
 
 game.on('guess continue',function(data){
@@ -226,7 +226,7 @@ io.sockets.on('connection',function(socket){
 			action = data.action;
 		
 		console.log("event:socket[guess act]",data);
-		game.playGuess(player,guess,action);
+		game.playGuess(player,action);
 	});
 	
 	socket.on('move',function(dir){
