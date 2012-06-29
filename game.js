@@ -146,7 +146,7 @@ var fn = {
 		console.log("game:play guess:",player,action);
 		var player = this.players.get(player),
 			guess = player && this.guesses.get(player.guess);
-		guess.act(player,action);
+		guess && guess.act(player,action);
 	},
 	movePlayer:function(name,dir){
 		var cur,
@@ -354,7 +354,7 @@ var fn = {
 		
 		for(var i = 0 ; i < edge ; i++){
 			for(var j = 0; j < edge ; j++){
-				player = this.getPosition({x:j,y:i});
+				player = this.board.get({x:j,y:i});
 				if(player){
 					process.stdout.write(player.name+","+player.level+"\t");	
 				}else{

@@ -1,4 +1,4 @@
-var socket = io.connect("http://192.168.1.101:3000");
+var socket = io.connect("http://192.168.61.120:3000");
 
 
 
@@ -11,7 +11,7 @@ $(document).ready(function(){
 
 function requireName(){
 	
-	if(name = prompt("输入你的名字")){
+	if(name = prompt("输入你的名字",'')){
 	
 		var chatinput = $("#chat_input");
 		chatinput.keyup(function(e){
